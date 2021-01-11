@@ -1,0 +1,25 @@
+{
+  "name": "mq-in-one",
+  "version": "1.0.0",
+  "description": "MQ-IN-ONE，聚合阿里云MNS、腾讯云CMQ等(http)队列服务",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Y2Nk4/node-mq-in-one.git"
+  },
+  "author": "y2nk4 <1147678303@qq.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Y2Nk4/node-mq-in-one/issues"
+  },
+  "homepage": "https://github.com/Y2Nk4/node-mq-in-one#readme",
+  "dependencies": {
+    "better-queue": "^3.8.10",
+    "cmq-sdk": "^2.1.0",
+    "log4js": "^6.3.0",
+    "require-all": "^3.0.0"
+  }
+}
