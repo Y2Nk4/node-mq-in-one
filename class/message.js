@@ -15,7 +15,7 @@ class message {
     }
 
     getMessageId () {
-        return this.messageId
+        return this.options.messageId
     }
 
     getMsgPriority () {

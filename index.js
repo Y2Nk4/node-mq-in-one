@@ -12,8 +12,6 @@ class MQInOne {
     }
 
     constructor(CONFIG, MQType, logger) {
-        console.log(contracts)
-
         if (contracts[MQType]) {
             this.mq = new contracts[MQType](CONFIG, logger)
         } else {

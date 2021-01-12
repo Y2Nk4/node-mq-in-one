@@ -1,5 +1,5 @@
 let ALIMNS = require('ali-mns'),
-    MessageNotExistError = require('../error/MessageNotExist')
+    MessageNotExistError = require('../error/MessageNotExist'),
     MessageContract = require('../class/message')
 
 
@@ -15,17 +15,15 @@ class mns {
 
     receiveMessage (pollingWaitSeconds = 5) {
         return this.MNSClient.recvP(pollingWaitSeconds).then(message => {
-            console.log('raw', message)
-
             return new MessageContract(
                 message.Message.MessageBody,
                 message.Message.ReceiptHandle,
                 {
                     enqueueTime: new Date(parseInt(message.Message.EnqueueTime)),
                     dequeueCount:  message.Message.DequeueCount,
-                    nextVisibleTime:  message.Message.NextVisibleTime,
+                    nextVisibleTime:  new Date(parseInt(message.Message.NextVisibleTime)),
                     priority:  message.Message.Priority,
-                    firstDequeueTime:  message.Message.FirstDequeueTime,
+                    firstDequeueTime:  new Date(parseInt(message.Message.FirstDequeueTime)),
                     messageId:  message.Message.MessageId,
                 },
                 message
@@ -61,7 +59,7 @@ class mns {
     consumeMessage (message) {
         return this.MNSClient.deleteP(message.getHandler())
             .then(result => {
-                return result === 204 ? true : result
+                return result === 204
             })
     }
 }

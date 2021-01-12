@@ -1,95 +1,75 @@
 let { CMQ } = require('cmq-sdk'),
-    _logger = require('log4js').getLogger('cmq'),
-    Queue = require('better-queue')
+    MessageNotExistError = require('../error/MessageNotExist'),
+    MessageContract = require('../class/message')
 
 class cmq {
-    constructor(CONFIG) {
+    constructor(CONFIG, logger) {
+        this.logger = logger
         this.CONFIG = CONFIG
 
-        this.CMQClient = new CMQ.NEW({
+        this.CMQClient = CMQ.NEW({
             path: '/v2/index.php',
             signatureMethod: 'HmacSHA256',
             extranet: true,
             secretId: this.CONFIG.keyId,
-            secretKey: this.CONFIG.secretKey,
+            secretKey: this.CONFIG.keySecret,
             region: this.CONFIG.mqRegion
         })
-
-        this.TaskQueue = new Queue(function (task, cb) {
-            return task(cb)
-        }, {
-            maxRetries: Infinity,
-            retryDelay: 3000,
-            concurrent: 3,
-        })
-
-        setInterval(() => {
-            _logger.info(this.TaskQueue.getStats())
-        }, 3000)
-
-        setInterval(() => {
-            _logger.info(this.TaskQueue.resetStats())
-        }, 60 * 60 * 1000)
     }
 
-
-    pollingMessage (maxRetries, handler) {
-        let job = async function (cb) {
-            try{
-                let Message = await this.CMQClient.receiveMessage({
-                    'queueName': this.CONFIG.queueName,
-                })
-
-                if (maxRetries && Message.dequeueCount > maxRetries) {
-                    // 失败次数过多
-                    await this.CMQClient.deleteMessage({
-                        'queueName': this.CONFIG.queueName,
-                        'receiptHandle': Message.receiptHandle
-                    })
-
-                    this.TaskQueue.push((cb_inner) => {
-                        return job(cb_inner)
-                    })
-
-                    cb(null)
-                } else {
-                    handler(Message.msgBody, async (result) => {
-                        if (result) {
-                            await this.CMQClient.deleteMessage({
-                                'queueName': this.CONFIG.queueName,
-                                'receiptHandle': Message.receiptHandle
-                            })
-                        }
-
-                        this.TaskQueue.push((cb_inner) => {
-                            return job(cb_inner)
-                        })
-
-                        cb(null)
-                    })
-                }
-
-            }catch (err) {
-                if(err.message.indexOf('no message') === -1){
-                    _logger.error(err)
-                }
-
-                this.TaskQueue.push((cb_inner) => {
-                    return job(cb_inner)
-                })
-
-                cb(null)
+    receiveMessage (pollingWaitSeconds = 5) {
+        return this.CMQClient.receiveMessage({
+            queueName: this.CONFIG.queueName,
+            pollingWaitSeconds
+        }).then((message) => {
+            if (message.code === 7000 || message.message.indexOf('no message') !== -1) {
+                return Promise.reject(new MessageNotExistError({
+                    requestId: message.requestId
+                }))
             }
-        }
 
-        for(let a = 0; a <= 3; a++){
-            setTimeout(() => {
-                this.TaskQueue.push((cb) => {
-                    return job(cb)
-                })
-            }, a * 100)
-        }
+            return new MessageContract(message.msgBody,
+                message.receiptHandle,
+                {
+                    dequeueCount:  message.dequeueCount,
+                    messageId:  message.msgId,
+                    enqueueTime: new Date(message.enqueueTime * 1000),
+                    nextVisibleTime:  new Date(message.nextVisibleTime * 100),
+                    firstDequeueTime:  new Date(message.firstDequeueTime * 100),
+                }, message)
+        }).catch(error => {
+            if (error.code === 'ETIMEDOUT') {
+                return Promise.reject(new MessageNotExistError())
+            }
+            return Promise.reject(error)
+        })
     }
+
+    pushMessage (content, options = {}) {
+        return this.CMQClient.sendMessage({
+            queueName: this.CONFIG.queueName,
+            msgBody: content,
+            delaySeconds: options.delaySeconds || cmq.DEFAULT_OPTIONS.delaySeconds
+        }).then((result) => {
+            return new MessageContract(content, null, {
+                messageId: result.msgId
+            }, result)
+        })
+    }
+
+    consumeMessage (message) {
+        return this.CMQClient.deleteMessage({
+            queueName: this.CONFIG.queueName,
+            receiptHandle: message.getHandler()
+        })
+            .then(result => {
+                return result.code === 0
+            })
+    }
+}
+
+cmq.DEFAULT_OPTIONS = {
+    delaySeconds: 0
 }
 
 module.exports = cmq
