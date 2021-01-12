@@ -6,6 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "cmq", "mns", "mq", "message-queue", "unifyMQ",
+    "mq-in-one"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Y2Nk4/node-mq-in-one.git"

@@ -20,6 +20,8 @@ let mq = new mqInOne(config, config.mqType, logger)
 //     return mq.consumeMessage(message)
 // })
 
-mq.pushMessage('test message').then((result) => {
+mq.pushMessage('test message', {
+    delaySeconds: 2
+}).then((result) => {
     console.log('sent', result)
 })

@@ -1,9 +1,63 @@
-# node-index-in-one
-MQ-IN-ONE，聚合阿里云MNS、腾讯云CMQ等(http)队列服务
+<span align="center">
 
-### 使用的库
-- 腾讯云CMQ: [kainonly/cmq-node-sdk](https://github.com/kainonly/cmq-node-sdk)
-- 阿里云MNS: [InCar/ali-mns](https://github.com/InCar/ali-mns)
+# MQ-In-One
+
+</span>
+
+MQ-IN-ONE，旨在聚合各家云平台(阿里云MNS、腾讯云CMQ等)的队列服务，
+以使用相似的API来调用各家云平台的队列，使得切换不同云平台服务的时候
+仅需要更改配置文件而不需要更改代码结构。
+
+### 现已支持
+- 腾讯云CMQ: 基于 [kainonly/cmq-node-sdk](https://github.com/kainonly/cmq-node-sdk) 实现
+- 阿里云MNS: 基于 [InCar/ali-mns](https://github.com/InCar/ali-mns) 实现
+
+感谢以上库作者的贡献
+
+### Quick Start
+
+```javascript
+
+let MQInOne = require('mq-in-one')
+
+let mq = new MQInOne({
+    // 不同厂商的MQ需要的配置不同，请查看各MQ的[配置项]
+    accountId: '<accountId>',
+    keyId: '<keyId>',
+    keySecret: '<keySecret>',
+    queueName: '<queueName>',
+    mqRegion: '<mqRegion>',
+}, '<mqType>')
+```
+
+不同厂商的MQ需要的配置不同，请查看各MQ的[配置项](#配置项)
+
+#### 获取消息
+```javascript
+mq.receiveMessage().then(message => {
+    console.log('Message content:', message.getContent())
+})
+```
+
+#### 添加消息
+```javascript
+mq.pushMessage('I am content', {
+    delaySeconds: 2     // 延迟2秒后可见
+}).then(result => {
+    console.log('Sent message:', result)
+})
+```
+
+#### 轮询消息
+```javascript
+mq.pollingMessage(30, (err, message) => {
+    if (err) {
+        console.error('Error occurred:', err)
+    } else {
+        console.log('Received message', message)
+    }
+})
+```
 
 ### API Reference
 - `MQIneOne`
@@ -47,6 +101,14 @@ MQ-IN-ONE，聚合阿里云MNS、腾讯云CMQ等(http)队列服务
         消费(删除)消息
     
         * `message`: `MessageContract` - 要删除的信息
+    
+    - `pollingMessage`
+        
+        不断轮询队列，若获取到新消息，则调用传入的handler函数
+    
+        * handler: `function`
+            * `err` - 轮询错误
+            * `message`: `MessageContract` - 获取到的消息
     
 - `MessageContract` 
     - `constructor`
