@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Y2Nk4/node-mq-in-one#readme",
   "dependencies": {
+    "ali-mns": "^2.6.8",
     "better-queue": "^3.8.10",
     "cmq-sdk": "^2.1.0",
     "log4js": "^6.3.0",

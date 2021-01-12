@@ -105,3 +105,6 @@ dist
 
 # JetBrains IDE
 .idea
+
+# test config
+test/config

@@ -11,6 +11,14 @@ MQ-IN-ONE，聚合阿里云MNS、腾讯云CMQ等(http)队列服务
         * `config`
             
             MQ配置项，不同厂商的MQ需要的配置不同，请查看各MQ的[配置项](#配置项)
+    
+        * `mqType`
+
+            队列类型。现在支持: 阿里云MNS: `mns`, 腾讯云CMQ `cmq`
+    
+        * `logger`
+    
+            log4js的logger实例
 
 ### 配置项
 - 公共配置项

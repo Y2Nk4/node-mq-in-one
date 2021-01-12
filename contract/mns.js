@@ -1,42 +1,43 @@
-let ALIMNS = require('ali-mns')
+let ALIMNS = require('ali-mns'),
+    MessageNotExistError = require('../error/MessageNotExist')
+    MessageContract = require('../class/message')
 
 
 class mns {
-    constructor(CONFIG, maxRetries, logger) {
+    constructor(CONFIG, logger) {
         this.logger = logger
         this.CONFIG = CONFIG
-        this.maxRetries = maxRetries
 
         this.AliAccount = new ALIMNS.Account(CONFIG.accountId, CONFIG.keyId, CONFIG.keySecret)
         this.MNSClient = new ALIMNS.MQ(CONFIG.queueName, this.AliAccount, CONFIG.mqRegion)
 
     }
 
-    pollingMessage (handler) {
-        this.MNSClient.notifyRecv((error, message) => {
-            try{
-                if (error) {
-                    this.logger.error(error)
-                    return
-                }
+    receiveMessage (pollingWaitSeconds = 5) {
+        return this.MNSClient.recvP(pollingWaitSeconds).then(message => {
+            console.log('raw', message)
 
-                this.logger.info(message)
-
-                if (this.maxRetries && parseInt(message.Message.DequeueCount) > this.maxRetries) {
-                    this.logger.info(`Deleted Request ${message.Message.MessageId} due to too many failed attempts`)
-                    return true
-                }
-
-                handler(message.Message.MessageBody, async (result) => {
-                    if (result) {
-                        await this.MNSClient.deleteP(message.Message.ReceiptHandle)
-                    } else if (this.maxRetries && (parseInt(message.Message.DequeueCount) + 1) > this.maxRetries) {
-                        this.logger.info(`Deleted Request ${message.Message.MessageId} due to too many failed attempts`)
-                    }
-                })
-            }catch (e) {
-                this.logger.error('pollingMessage Error', e)
+            return new MessageContract(
+                message.Message.MessageBody,
+                message.Message.ReceiptHandle,
+                {
+                    enqueueTime: new Date(parseInt(message.Message.EnqueueTime)),
+                    dequeueCount:  message.Message.DequeueCount,
+                    nextVisibleTime:  message.Message.NextVisibleTime,
+                    priority:  message.Message.Priority,
+                    firstDequeueTime:  message.Message.FirstDequeueTime,
+                    messageId:  message.Message.MessageId,
+                },
+                message
+            )
+        }).catch(error => {
+            if (error.Error.Code === 'MessageNotExist') {
+                return Promise.reject(new MessageNotExistError({
+                    requestId: error.Error.RequestId,
+                    hostId: error.Error.HostId,
+                }))
             }
+            return Promise.reject(error)
         })
     }
 
@@ -45,7 +46,23 @@ class mns {
             message,
             options.priority,
             options.delaySeconds
-        )
+        ).then((sentResult) => {
+            return new MessageContract(
+                message,
+                null,
+                {
+                    messageId:  sentResult.Message.MessageId
+                },
+                sentResult
+            )
+        })
+    }
+
+    consumeMessage (message) {
+        return this.MNSClient.deleteP(message.getHandler())
+            .then(result => {
+                return result === 204 ? true : result
+            })
     }
 }
 
