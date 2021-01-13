@@ -109,6 +109,12 @@ mq.pollingMessage(30, (err, message) => {
         * handler: `function`
             * `err` - 轮询错误
             * `message`: `MessageContract` - 获取到的消息
+            * `callback`: `function` - optional
+                
+                如果 `waitForCallback` 为 `true` 则会通过 `callback` 参数
+                传入回调函数，且队列会等待回调后再继续轮询
+
+        * `waitForCallback`: `Boolean` 获取到消息后是否等待回调函数再继续轮询
     
 - `MessageContract` 
     - `constructor`

@@ -20,25 +20,37 @@ class MQInOne {
     }
 
     /* 使用底层 pollingMessage */
-    pollingMessage(pollingWaitTime, handler) {
+    pollingMessage(pollingWaitTime, handler, waitForCallback) {
         if (typeof pollingWaitTime === 'function') {
             handler = pollingWaitTime
             pollingWaitTime = this.DEFAULT_OPTIONS.pollingWaitTime
         }
 
+        let cb = () => {
+            return setTimeout(() => {
+                this.pollingMessage(pollingWaitTime, handler)
+            }, 0)
+        }
+
         this.mq.receiveMessage(pollingWaitTime)
             .then((message) => {
-                handler(null, message)
-                return setTimeout(() => {
-                    this.pollingMessage(pollingWaitTime, handler)
-                }, 0)
+                if (waitForCallback) {
+                    handler(null, message, cb.bind(this))
+                } else {
+                    handler(null, message)
+                    cb()
+                }
             }).catch((error) => {
                 if (error.code !== 'MessageNotExist') {
-                    handler(error)
+                    if (!waitForCallback) {
+                        handler(error, null, cb.bind(this))
+                    } else {
+                        handler(error)
+                        cb()
+                    }
+                } else {
+                    cb()
                 }
-                return setTimeout(() => {
-                    this.pollingMessage(pollingWaitTime, handler)
-                }, 0)
             })
     }
 
