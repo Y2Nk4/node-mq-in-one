@@ -42,7 +42,7 @@ class MQInOne {
                 }
             }).catch((error) => {
                 if (error.code !== 'MessageNotExist') {
-                    if (!waitForCallback) {
+                    if (waitForCallback) {
                         handler(error, null, cb.bind(this))
                     } else {
                         handler(error)

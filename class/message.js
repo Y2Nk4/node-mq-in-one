@@ -41,6 +41,10 @@ class message {
     getDequeueCount () {
         return this.options.dequeueCount
     }
+
+    getMqType () {
+        return this.options.mqType
+    }
 }
 
 module.exports = message

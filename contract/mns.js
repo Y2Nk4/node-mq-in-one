@@ -25,6 +25,7 @@ class mns {
                     priority:  message.Message.Priority,
                     firstDequeueTime:  new Date(parseInt(message.Message.FirstDequeueTime)),
                     messageId:  message.Message.MessageId,
+                    mqType: mns.mqType
                 },
                 message
             )
@@ -49,7 +50,8 @@ class mns {
                 message,
                 null,
                 {
-                    messageId:  sentResult.Message.MessageId
+                    messageId:  sentResult.Message.MessageId,
+                    mqType: mns.mqType
                 },
                 sentResult
             )
@@ -63,5 +65,7 @@ class mns {
             })
     }
 }
+
+mns.mqType = 'mns'
 
 module.exports = mns

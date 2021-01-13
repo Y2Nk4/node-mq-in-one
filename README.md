@@ -14,6 +14,11 @@ MQ-IN-ONE，旨在聚合各家云平台(阿里云MNS、腾讯云CMQ等)的队列
 
 感谢以上库作者的贡献
 
+### 安装
+```shell
+npm install mq-in-one
+```
+
 ### Quick Start
 
 ```javascript

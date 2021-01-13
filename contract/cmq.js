@@ -36,6 +36,7 @@ class cmq {
                     enqueueTime: new Date(message.enqueueTime * 1000),
                     nextVisibleTime:  new Date(message.nextVisibleTime * 100),
                     firstDequeueTime:  new Date(message.firstDequeueTime * 100),
+                    mqType: cmq.mqType
                 }, message)
         }).catch(error => {
             if (error.code === 'ETIMEDOUT') {
@@ -52,7 +53,8 @@ class cmq {
             delaySeconds: options.delaySeconds || cmq.DEFAULT_OPTIONS.delaySeconds
         }).then((result) => {
             return new MessageContract(content, null, {
-                messageId: result.msgId
+                messageId: result.msgId,
+                mqType: cmq.mqType
             }, result)
         })
     }
@@ -71,5 +73,7 @@ class cmq {
 cmq.DEFAULT_OPTIONS = {
     delaySeconds: 0
 }
+
+cmq.mqType = 'cmq'
 
 module.exports = cmq

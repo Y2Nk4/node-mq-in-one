@@ -1,6 +1,6 @@
 {
   "name": "mq-in-one",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "MQ-IN-ONE，聚合阿里云MNS、腾讯云CMQ等(http)队列服务",
   "main": "index.js",
   "scripts": {
