@@ -1,4 +1,5 @@
 let MessageContract = require('./class/message')
+let _ = require('lodash')
 let contracts = require('require-all')({
     dirname     :  __dirname + '/contract',
     filter      :  /(.*)\.js$/,
@@ -26,26 +27,22 @@ class MQInOne {
             pollingWaitTime = this.DEFAULT_OPTIONS.pollingWaitTime
         }
 
-        let cb = () => {
+        let cb = _.once(() => {
             return setTimeout(() => {
-                this.pollingMessage(pollingWaitTime, handler)
+                this.pollingMessage(pollingWaitTime, handler, waitForCallback)
             }, 0)
-        }
+        })
 
         this.mq.receiveMessage(pollingWaitTime)
             .then((message) => {
-                if (waitForCallback) {
-                    handler(null, message, cb.bind(this))
-                } else {
-                    handler(null, message)
+                handler(null, message, cb.bind(this))
+                if (!waitForCallback) {
                     cb()
                 }
             }).catch((error) => {
                 if (error.code !== 'MessageNotExist') {
-                    if (waitForCallback) {
-                        handler(error, null, cb.bind(this))
-                    } else {
-                        handler(error)
+                    handler(error, null, cb.bind(this))
+                    if (!waitForCallback) {
                         cb()
                     }
                 } else {

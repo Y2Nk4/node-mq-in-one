@@ -1,13 +1,17 @@
 {
   "name": "mq-in-one",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "MQ-IN-ONE，聚合阿里云MNS、腾讯云CMQ等(http)队列服务",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "cmq", "mns", "mq", "message-queue", "unifyMQ",
+    "cmq",
+    "mns",
+    "mq",
+    "message-queue",
+    "unifyMQ",
     "mq-in-one"
   ],
   "repository": {
@@ -24,6 +28,7 @@
     "ali-mns": "^2.6.8",
     "better-queue": "^3.8.10",
     "cmq-sdk": "^2.1.0",
+    "lodash": "^4.17.20",
     "log4js": "^6.3.0",
     "require-all": "^3.0.0"
   }
